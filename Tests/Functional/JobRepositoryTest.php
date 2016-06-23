@@ -96,7 +96,36 @@ class JobRepositoryTest extends BaseTestCase
 
         $excludedIds = array();
         $this->assertSame($c, $this->repo->findStartableJob($excludedIds));
-        $this->assertEquals(array($b->getId()), $excludedIds);
+        $this->assertEmpty($excludedIds);
+    }
+
+    public function testFindStartableJobWithFinishedDependency()
+    {
+        $this->assertNull($this->repo->findStartableJob());
+
+        $a = new Job('a');
+        $a->setState('running');
+        $b = new Job('b');
+        $c = new Job('c');
+        $c->setState('running');
+        $c->setState('finished');
+        $d = new Job('d');
+        $b->addDependency($c);
+        $b->addDependency($d);
+
+        $this->em->persist($a);
+        $this->em->persist($b);
+        $this->em->persist($c);
+        $this->em->persist($d);
+        $this->em->flush();
+        $this->em->clear();
+        $this->assertTrue($b->getId() < $d->getId());
+
+        $excludedIds = array();
+        $startable = $this->repo->findStartableJob($excludedIds, array(), array('default'));
+        $this->assertEquals($d->getId(), $startable->getId());
+        $this->assertEquals($d->getCommand(), $startable->getCommand());
+        $this->assertEmpty($excludedIds);
     }
 
     public function testFindJobByRelatedEntity()
@@ -120,7 +149,7 @@ class JobRepositoryTest extends BaseTestCase
         $this->assertEquals($a->getId(), $reloadedB->getRelatedEntities()->first()->getId());
     }
 
-    public function testFindStartableJobDetachesNonStartableJobs()
+    public function testFindStartableJobDoesNotFetchNonStartableJobs()
     {
         $a = new Job('a');
         $b = new Job('b');
@@ -128,17 +157,16 @@ class JobRepositoryTest extends BaseTestCase
         $this->em->persist($a);
         $this->em->persist($b);
         $this->em->flush();
+        $this->em->clear();
 
-        $this->assertTrue($this->em->contains($a));
-        $this->assertTrue($this->em->contains($b));
 
         $excludedIds = array();
         $startableJob = $this->repo->findStartableJob($excludedIds);
         $this->assertNotNull($startableJob);
         $this->assertEquals($b->getId(), $startableJob->getId());
-        $this->assertEquals(array($a->getId()), $excludedIds);
+        $this->assertEmpty($excludedIds);
         $this->assertFalse($this->em->contains($a));
-        $this->assertTrue($this->em->contains($b));
+        $this->assertTrue($this->em->contains($startableJob));
     }
 
     public function testCloseJob()
