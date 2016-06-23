@@ -109,20 +109,46 @@ class JobRepository extends EntityRepository
 
     public function findStartableJob(array &$excludedIds = array(), $excludedQueues = array(), $restrictedQueues = array())
     {
-        while (null !== $job = $this->findPendingJob($excludedIds, $excludedQueues, $restrictedQueues)) {
-            if ($job->isStartable()) {
-                return $job;
-            }
+        $rsm = new ResultSetMappingBuilder($this->_em);
+        $rsm->addRootEntityFromClassMetadata('JMSJobQueueBundle:Job', 'j');
 
-            $excludedIds[] = $job->getId();
+        $sql = <<<SQL
+SELECT j.*
+FROM jms_jobs j
+LEFT JOIN jms_job_dependencies d ON j.id = d.source_job_id
+LEFT JOIN jms_jobs jd ON jd.id = d.dest_job_id AND (jd.state != :state_finished)
+WHERE j.state = :state_pending
+SQL;
+        $params = new ArrayCollection();
+        $params->add(new Parameter('state_finished', Job::STATE_FINISHED));
+        $params->add(new Parameter('state_pending', Job::STATE_PENDING));
 
-            // We do not want to have non-startable jobs floating around in
-            // cache as they might be changed by another process. So, better
-            // re-fetch them when they are not excluded anymore.
-            $this->_em->detach($job);
+        if (!empty($excludedIds)) {
+            $sql .= ' AND j.id NOT IN (:excludedIds)';
+            $params->add(new Parameter('excludedIds', $excludedIds, Connection::PARAM_INT_ARRAY));
         }
 
-        return null;
+        if (!empty($excludedQueues)) {
+            $sql .= ' AND j.queue NOT IN (:excludedQueues)';
+            $params->add(new Parameter('excludedQueues', $excludedQueues, Connection::PARAM_STR_ARRAY));
+        }
+
+        if (!empty($restrictedQueues)) {
+            $sql .= ' AND j.queue IN (:restrictedQueues)';
+            $params->add(new Parameter('restrictedQueues', $restrictedQueues, Connection::PARAM_STR_ARRAY));
+        }
+
+        $sql .= <<<SQL
+
+GROUP BY j.id
+HAVING max(jd.id) IS NULL
+ORDER BY j.priority ASC, j.id ASC
+LIMIT 1;
+SQL;
+
+        return $this->_em->createNativeQuery($sql, $rsm)
+           ->setParameters($params)
+           ->getOneOrNullResult();
     }
 
     public function findAllForRelatedEntity($relatedEntity)
