@@ -71,7 +71,7 @@ class JobManager
 
         $job = new Job($command, $args, false);
         $this->getJobManager()->persist($job);
-        $this->getJobManager()->flush($job);
+        $this->getJobManager()->flush();
 
         $firstJob = $this->getJobManager()->createQuery("SELECT j FROM JMSJobQueueBundle:Job j WHERE j.command = :command AND j.args = :args ORDER BY j.id ASC")
              ->setParameter('command', $command)
@@ -82,13 +82,13 @@ class JobManager
         if ($firstJob === $job) {
             $job->setState(Job::STATE_PENDING);
             $this->getJobManager()->persist($job);
-            $this->getJobManager()->flush($job);
+            $this->getJobManager()->flush();
 
             return $job;
         }
 
         $this->getJobManager()->remove($job);
-        $this->getJobManager()->flush($job);
+        $this->getJobManager()->flush();
 
         return $firstJob;
     }
@@ -269,7 +269,7 @@ class JobManager
 
         if (null !== $this->dispatcher && ($job->isRetryJob() || 0 === count($job->getRetryJobs()))) {
             $event = new StateChangeEvent($job, $finalState);
-            $this->dispatcher->dispatch('jms_job_queue.job_state_change', $event);
+            $this->dispatcher->dispatch($event, 'jms_job_queue.job_state_change');
             $finalState = $event->getNewState();
         }
 

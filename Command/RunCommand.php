@@ -283,13 +283,13 @@ class RunCommand extends Command
 
             if ( ! empty($newOutput)) {
                 $event = new NewOutputEvent($data['job'], $newOutput, NewOutputEvent::TYPE_STDOUT);
-                $this->dispatcher->dispatch('jms_job_queue.new_job_output', $event);
+                $this->dispatcher->dispatch($event, 'jms_job_queue.new_job_output');
                 $newOutput = $event->getNewOutput();
             }
 
             if ( ! empty($newErrorOutput)) {
                 $event = new NewOutputEvent($data['job'], $newErrorOutput, NewOutputEvent::TYPE_STDERR);
-                $this->dispatcher->dispatch('jms_job_queue.new_job_output', $event);
+                $this->dispatcher->dispatch($event, 'jms_job_queue.new_job_output');
                 $newErrorOutput = $event->getNewOutput();
             }
 
@@ -323,7 +323,7 @@ class RunCommand extends Command
                 $data['job']->checked();
                 $em = $this->getEntityManager();
                 $em->persist($data['job']);
-                $em->flush($data['job']);
+                $em->flush();
 
                 continue;
             }
@@ -350,7 +350,7 @@ class RunCommand extends Command
     private function startJob(Job $job)
     {
         $event = new StateChangeEvent($job, Job::STATE_RUNNING);
-        $this->dispatcher->dispatch('jms_job_queue.job_state_change', $event);
+        $this->dispatcher->dispatch($event, 'jms_job_queue.job_state_change');
         $newState = $event->getNewState();
 
         if (Job::STATE_CANCELED === $newState) {
@@ -366,7 +366,7 @@ class RunCommand extends Command
         $job->setState(Job::STATE_RUNNING);
         $em = $this->getEntityManager();
         $em->persist($job);
-        $em->flush($job);
+        $em->flush();
 
         $args = $this->getBasicCommandLineArgs();
         $args[] = $job->getCommand();
