@@ -14,7 +14,6 @@
     "require": {
         "php": ">=7.4",
         "symfony/framework-bundle": "^5.0",
-        "symfony/debug": "^5.0",
         "doctrine/common": "^3.0",
         "symfony/process": "^5.0"
     },
