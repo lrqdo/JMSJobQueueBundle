@@ -302,7 +302,7 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable
      *
      * @return integer The number of elements in the collection.
      */
-    public function count()
+    public function count(): int
     {
         $this->initialize();
 
@@ -339,7 +339,7 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable
      *
      * Note: This is preferable over count() == 0.
      *
-     * @return boolean TRUE if the collection is empty, FALSE otherwise.
+     * @return boolean TRUE if the cjmsollection is empty, FALSE otherwise.
      */
     public function isEmpty()
     {
@@ -353,7 +353,7 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable
      *
      * @return ArrayIterator
      */
-    public function getIterator()
+    public function getIterator(): ArrayIterator
     {
         $this->initialize();
 
