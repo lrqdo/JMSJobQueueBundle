@@ -455,7 +455,7 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable
         throw new \LogicException('findFirst() is not supported.');
     }
 
-    public function reduce(Closure $func, $initial)
+    public function reduce(Closure $func, mixed $initial = null)
     {
         throw new \LogicException('reduce() is not supported.');
     }
