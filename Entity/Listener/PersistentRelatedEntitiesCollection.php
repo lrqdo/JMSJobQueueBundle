@@ -450,6 +450,16 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable
         throw new \LogicException('clear() is not supported.');
     }
 
+    public function findFirst(Closure $predicate)
+    {
+        throw new \LogicException('findFirst() is not supported.');
+    }
+
+    public function reduce(Closure $func, $initial)
+    {
+        throw new \LogicException('reduce() is not supported.');
+    }
+
     /**
      * Extract a slice of $length elements starting at position $offset from the Collection.
      *
