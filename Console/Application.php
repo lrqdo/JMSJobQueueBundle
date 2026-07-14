@@ -74,7 +74,7 @@ class Application extends BaseApplication
         foreach ($characteristics as $name => $value) {
             $this->insertStatStmt->bindValue('name', $name);
             $this->insertStatStmt->bindValue('value', $value);
-            $this->insertStatStmt->execute();
+            $this->insertStatStmt->executeStatement();
         }
     }
 
@@ -84,7 +84,7 @@ class Application extends BaseApplication
             return;
         }
 
-        $this->getConnection()->executeUpdate(
+        $this->getConnection()->executeStatement(
             "UPDATE jms_jobs SET stackTrace = :trace, memoryUsage = :memoryUsage, memoryUsageReal = :memoryUsageReal WHERE id = :id",
             array(
                 'id' => $jobId,

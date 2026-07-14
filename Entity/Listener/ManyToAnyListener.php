@@ -44,8 +44,8 @@ class ManyToAnyListener
             return;
         }
 
-        $con = $event->getEntityManager()->getConnection();
-        $con->executeUpdate("DELETE FROM jms_job_related_entities WHERE job_id = :id", array(
+        $con = $event->getObjectManager()->getConnection();
+        $con->executeStatement("DELETE FROM jms_job_related_entities WHERE job_id = :id", array(
             'id' => $entity->getId(),
         ));
     }
@@ -57,7 +57,7 @@ class ManyToAnyListener
             return;
         }
 
-        $con = $event->getEntityManager()->getConnection();
+        $con = $event->getObjectManager()->getConnection();
         foreach ($this->ref->getValue($entity) as $relatedEntity) {
             $relClass = \Doctrine\Common\Util\ClassUtils::getClass($relatedEntity);
             $relId = $this->registry->getManagerForClass($relClass)->getMetadataFactory()->getMetadataFor($relClass)->getIdentifierValues($relatedEntity);
@@ -67,7 +67,7 @@ class ManyToAnyListener
                 throw new \RuntimeException('The identifier for the related entity "'.$relClass.'" was empty.');
             }
 
-            $con->executeUpdate("INSERT INTO jms_job_related_entities (job_id, related_class, related_id) VALUES (:jobId, :relClass, :relId)", array(
+            $con->executeStatement("INSERT INTO jms_job_related_entities (job_id, related_class, related_id) VALUES (:jobId, :relClass, :relId)", array(
                 'jobId' => $entity->getId(),
                 'relClass' => $relClass,
                 'relId' => json_encode($relId),
