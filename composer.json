@@ -13,9 +13,9 @@
     ],
     "require": {
         "php": ">=7.4",
-        "symfony/framework-bundle": "^5.0 || ^6.0",
+        "symfony/framework-bundle": "^5.0 || ^6.0 || ^7.0",
         "doctrine/common": "^3.0",
-        "symfony/process": "^5.0 || ^6.0"
+        "symfony/process": "^5.0 || ^6.0 || ^7.0"
     },
     "require-dev": {
         "doctrine/doctrine-fixtures-bundle": "*",
